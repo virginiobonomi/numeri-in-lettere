@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+  <title>Numeri in lettere</title>
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+  <link rel="stylesheet" href="taskpane.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Numeri in lettere</h1>
+      <p class="sub">Seleziona nel documento un importo, una data o una quota.</p>
+    </header>
+
+    <section class="card">
+      <label for="testo">Da convertire</label>
+      <input id="testo" type="text" autocomplete="off" spellcheck="false"
+             placeholder="es. 125.000,50 · 07/11/2026 · 1/2">
+      <div class="row">
+        <label for="tipo" class="inline">Tipo</label>
+        <select id="tipo">
+          <option value="auto">Automatico</option>
+          <option value="numero">Numero o importo</option>
+          <option value="data">Data</option>
+          <option value="quota">Quota</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="card">
+      <span class="label">Numeri e importi</span>
+      <div class="seg" role="radiogroup" id="formatoNumero">
+        <label><input type="radio" name="fn" value="euro" checked><span>euro 1.000,00 (mille virgola zero zero)</span></label>
+        <label><input type="radio" name="fn" value="euro-barra"><span>euro 1.000,00 (mille/00)</span></label>
+        <label><input type="radio" name="fn" value="cifre"><span>1.000 (mille)</span></label>
+        <label><input type="radio" name="fn" value="lettere"><span>mille</span></label>
+      </div>
+      <label class="check"><input type="checkbox" id="decimaliEuro">Negli importi aggiungi sempre «,00»</label>
+      <label class="check"><input type="checkbox" id="milioniUniti">Scrivi milioni e miliardi tutto attaccato</label>
+
+      <span class="label">Date</span>
+      <select id="formatoData">
+        <option value="lettere">sette novembre duemilaventisei</option>
+        <option value="notarile">duemilaventisei, il giorno sette del mese di novembre</option>
+        <option value="cifre">07/11/2026 (sette novembre duemilaventisei)</option>
+      </select>
+    </section>
+
+    <section class="card anteprima">
+      <span class="label">Anteprima</span>
+      <div id="risultato" class="risultato vuoto">—</div>
+      <div id="errore" class="errore" hidden></div>
+    </section>
+
+    <section class="azioni">
+      <button id="sostituisci" class="primario" disabled>Sostituisci la selezione</button>
+      <button id="aggiungi" disabled>Aggiungi «(in lettere)» dopo la selezione</button>
+      <button id="copia" disabled>Copia</button>
+    </section>
+
+    <p id="stato" class="stato"></p>
+  </main>
+
+  <script src="numeri.js"></script>
+  <script src="taskpane.js"></script>
+</body>
+</html>
