@@ -15,9 +15,9 @@
         {
             "action": "InLettere",
             "key": {
-                "default": "Ctrl+Alt+Shift+N",
-                "windows": "Ctrl+Alt+Shift+N",
-                "mac": "Command+Option+Shift+N"
+                "default": "Ctrl+3",
+                "windows": "Ctrl+3",
+                "mac": "Ctrl+L"
             }
         },
         {
