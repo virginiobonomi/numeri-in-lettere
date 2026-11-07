@@ -15,14 +15,16 @@
         {
             "action": "InLettere",
             "key": {
-                "default": "Ctrl+Alt+Shift+L",
-                "mac": "Command+Option+Shift+L"
+                "default": "Ctrl+Alt+Shift+N",
+                "windows": "Ctrl+Alt+Shift+N",
+                "mac": "Command+Option+Shift+N"
             }
         },
         {
             "action": "MostraPannello",
             "key": {
                 "default": "Ctrl+Alt+Shift+P",
+                "windows": "Ctrl+Alt+Shift+P",
                 "mac": "Command+Option+Shift+P"
             }
         }

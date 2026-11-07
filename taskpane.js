@@ -198,12 +198,23 @@
 
   var nuovaCombinazione = null;
   var confermaOccupata = false;   // secondo clic su una combinazione già usata = usala comunque
-  var SIMBOLI = { Command: "⌘", Option: "⌥", Alt: "⌥", Shift: "⇧", Ctrl: "⌃", Control: "⌃" };
+  // Su Mac i tasti si mostrano come simboli (⌘ ⌥ ⇧ ⌃), su Windows per nome (Ctrl, Alt, Maiusc).
+  function suMac() {
+    try {
+      if (window.Office && Office.context && Office.context.diagnostics) {
+        return Office.context.diagnostics.platform === "Mac";
+      }
+    } catch (e) { /* si usa il controllo del browser */ }
+    return /Mac/i.test(navigator.platform || navigator.userAgent || "");
+  }
+  var NOMI_MAC = { Command: "⌘", Option: "⌥", Alt: "⌥", Shift: "⇧", Ctrl: "⌃", Control: "⌃" };
+  var NOMI_WIN = { Command: "Ctrl", Ctrl: "Ctrl", Control: "Ctrl", Alt: "Alt", Option: "Alt", Shift: "Maiusc" };
+  function nomeTasto(p) { return (suMac() ? NOMI_MAC : NOMI_WIN)[p] || p; }
 
   function inSimboli(combo) {
     return String(combo).split("+").map(function (p) {
-      return "<kbd>" + (SIMBOLI[p] || p) + "</kbd>";
-    }).join("");
+      return "<kbd>" + nomeTasto(p) + "</kbd>";
+    }).join(suMac() ? "" : "+");
   }
 
   function esitoScorciatoia(msg, tipo) {
@@ -224,7 +235,7 @@
     if (!inWord) { att.textContent = "Disponibile solo dentro Word."; return; }
     if (!scorciatoieDisponibili()) {
       att.innerHTML = "Questa versione di Word non gestisce le scorciatoie dei componenti aggiuntivi " +
-        "(serve Word per Mac 16.88 o successivo). Usa il pulsante «In lettere».";
+        "(su Mac serve Word 16.88 o successivo; su Windows Word versione 2408 o successiva). Usa il pulsante «In lettere».";
       $("registra").disabled = true; $("ripristinaScorciatoia").disabled = true;
       return;
     }
@@ -246,20 +257,23 @@
     ev.preventDefault();
     var m = ev.code.match(/^(?:Key([A-Z])|Digit([0-9]))$/);
     var tasto = m ? (m[1] || m[2]) : (ev.code === "Minus" ? "-" : null);
-    var mod = [];
-    if (ev.metaKey) mod.push("Command");
+    var mac = suMac(), mod = [];
+    if (ev.metaKey && mac) mod.push("Command");
     if (ev.ctrlKey) mod.push("Ctrl");
-    if (ev.altKey) mod.push("Option");
+    if (ev.altKey) mod.push(mac ? "Option" : "Alt");
     if (ev.shiftKey) mod.push("Shift");
-    if (!tasto) { $("registra").value = mod.map(function (x) { return SIMBOLI[x]; }).join(" ") + " …"; return; }
-    if (!(ev.metaKey || ev.ctrlKey || ev.altKey)) {
+    var sep = mac ? " " : " + ";
+    if (!tasto) { $("registra").value = mod.map(nomeTasto).join(sep) + (mod.length ? sep : "") + "…"; return; }
+    if (!((ev.metaKey && mac) || ev.ctrlKey || ev.altKey)) {
       nuovaCombinazione = null; $("salvaScorciatoia").disabled = true;
-      esitoScorciatoia("Serve almeno ⌘, ⌥ o ⌃ insieme alla lettera (⇧ da solo non basta).", "err");
+      esitoScorciatoia(mac
+        ? "Serve almeno ⌘, ⌥ o ⌃ insieme alla lettera (⇧ da solo non basta)."
+        : "Serve almeno Ctrl o Alt insieme alla lettera (Maiusc da solo non basta).", "err");
       return;
     }
     nuovaCombinazione = mod.concat([tasto]).join("+");
     confermaOccupata = false;
-    $("registra").value = mod.map(function (x) { return SIMBOLI[x]; }).concat([tasto]).join(" ");
+    $("registra").value = mod.map(nomeTasto).concat([tasto]).join(sep);
     $("salvaScorciatoia").disabled = false;
     esitoScorciatoia("");
   }
