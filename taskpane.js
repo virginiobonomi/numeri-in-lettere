@@ -132,6 +132,68 @@
     } else fallback();
   }
 
+  // ---------- pulsante «In lettere» e scorciatoia da tastiera ----------
+  // Legge il numero (o data, o quota) che precede il cursore e inserisce subito dopo «(in lettere)».
+  // Se c'è una selezione, aggiunge le lettere dopo la selezione.
+
+  function lettereAlCursore(event) {
+    var finito = function () {
+      if (event && typeof event.completed === "function") event.completed();
+    };
+    var opz = opzioni();
+    return Word.run(function (ctx) {
+      var sel = ctx.document.getSelection();
+      sel.load("text,isEmpty");
+      return ctx.sync().then(function () {
+        if (!sel.isEmpty) {
+          var originale = sel.text || "";
+          if (/[\r\n\u000b\u0007]/.test(originale)) {
+            throw new Error("La selezione comprende un a capo: seleziona solo il numero o la data.");
+          }
+          var m = originale.match(/^(\s*)([\s\S]*?)(\s*)$/);
+          if (!m[2]) throw new Error("Posiziona il cursore subito dopo un numero, una data o una quota.");
+          var r = NumeriInLettere.lettereDopo(m[2], opz);
+          var nuovo = sel.insertText(m[1] + m[2] + " (" + r.lettere + ")" + m[3], "Replace");
+          nuovo.select("End");
+          return ctx.sync();
+        }
+        var paragrafo = sel.paragraphs.getFirst();
+        var prima = paragrafo.getRange("Start").expandTo(sel.getRange("Start"));
+        prima.load("text");
+        return ctx.sync().then(function () {
+          var r = NumeriInLettere.lettereDopo(prima.text, opz);
+          var inserito = sel.insertText(r.daInserire, "End");
+          inserito.select("End");
+          return ctx.sync();
+        });
+      });
+    }).then(function () {
+      stato("Lettere inserite nel documento.", "ok");
+      finito();
+    }, function (e) {
+      // Nessun inserimento: si apre il pannello per mostrare il motivo.
+      stato(e && e.message ? e.message : "Inserimento non riuscito.", "err");
+      var apri = (window.Office && Office.addin && Office.addin.showAsTaskpane)
+        ? Office.addin.showAsTaskpane() : null;
+      return Promise.resolve(apri).catch(function () {}).then(finito);
+    });
+  }
+
+  function mostraPannello(event) {
+    var p = (window.Office && Office.addin && Office.addin.showAsTaskpane)
+      ? Office.addin.showAsTaskpane() : null;
+    return Promise.resolve(p).catch(function () {}).then(function () {
+      if (event && typeof event.completed === "function") event.completed();
+    });
+  }
+
+  try {
+    if (window.Office && Office.actions && Office.actions.associate) {
+      Office.actions.associate("InLettere", lettereAlCursore);
+      Office.actions.associate("MostraPannello", mostraPannello);
+    }
+  } catch (e) { /* fuori da Word: comandi non disponibili */ }
+
   // ---------- avvio ----------
 
   function collega() {

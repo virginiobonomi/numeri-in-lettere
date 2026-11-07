@@ -230,10 +230,57 @@
     return convertiNumero(t, opz);
   }
 
+  /**
+   * estraiFinale(testoPrimaDelCursore) -> { testo, spazi } oppure null
+   * Individua il numero, la data o la quota che precede il cursore.
+   * "spazi" sono gli eventuali spazi tra il numero e il cursore.
+   */
+  function estraiFinale(testoPrima) {
+    var t = String(testoPrima || "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, " ");
+    var m = t.match(/(\d{1,2}°?\s+([A-Za-zÀ-ÿ]+)\s+\d{4})([  ]*)$/);
+    if (m && MESI.indexOf(m[2].toLowerCase()) >= 0) return { testo: m[1], spazi: m[3] };
+    m = t.match(/(\S+)([  ]*)$/);
+    if (!m) return null;
+    var tok = m[1].replace(/^[(\[«"“']+/, "").replace(/^(€|euro|eur)/i, "");
+    return tok ? { testo: tok, spazi: m[2] } : null;
+  }
+
+  /**
+   * lettereDopo(testoPrima, opzioni) -> { daInserire, lettere, origine }
+   * Calcola il testo da inserire al cursore, es. " (millecinquecento)".
+   * Negli importi usa la forma con la barra se scelta nel pannello, altrimenti «virgola».
+   */
+  function lettereDopo(testoPrima, opzioni) {
+    var fin = estraiFinale(testoPrima);
+    if (!fin) throw new Error("Posiziona il cursore subito dopo un numero, una data o una quota.");
+    var opz = {};
+    for (var k in (opzioni || {})) opz[k] = opzioni[k];
+    opz.tipo = "auto";
+    opz.formatoNumero = opz.formatoNumero === "euro-barra" ? "euro-barra" : "lettere";
+    var r;
+    try { r = converti(fin.testo, opz); }
+    catch (e) {
+      if (opz.formatoNumero !== "euro-barra") {
+        throw new Error("Prima del cursore c'è «" + fin.testo + "», che non riconosco come numero, data o quota.");
+      }
+      opz.formatoNumero = "lettere";
+      try { r = converti(fin.testo, opz); }
+      catch (e2) {
+        throw new Error("Prima del cursore c'è «" + fin.testo + "», che non riconosco come numero, data o quota.");
+      }
+    }
+    // "1.500|"  -> "1.500 (millecinquecento)|"
+    // "1.500 |" -> "1.500 (millecinquecento) |"  (lo spazio resta prima della parola che segue)
+    var daInserire = fin.spazi ? "(" + r.lettere + ")" + fin.spazi : " (" + r.lettere + ")";
+    return { daInserire: daInserire, lettere: r.lettere, origine: fin.testo };
+  }
+
   var api = {
     converti: converti,
     interoInLettere: interoInLettere,
-    riconosciTipo: riconosciTipo
+    riconosciTipo: riconosciTipo,
+    estraiFinale: estraiFinale,
+    lettereDopo: lettereDopo
   };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.NumeriInLettere = api;

@@ -1,0 +1,30 @@
+{
+    "actions": [
+        {
+            "id": "InLettere",
+            "type": "ExecuteFunction",
+            "name": "Scrivi in lettere il numero prima del cursore"
+        },
+        {
+            "id": "MostraPannello",
+            "type": "ExecuteFunction",
+            "name": "Apri il pannello Numeri in lettere"
+        }
+    ],
+    "shortcuts": [
+        {
+            "action": "InLettere",
+            "key": {
+                "default": "Ctrl+Alt+Shift+L",
+                "mac": "Command+Option+Shift+L"
+            }
+        },
+        {
+            "action": "MostraPannello",
+            "key": {
+                "default": "Ctrl+Alt+Shift+P",
+                "mac": "Command+Option+Shift+P"
+            }
+        }
+    ]
+}
