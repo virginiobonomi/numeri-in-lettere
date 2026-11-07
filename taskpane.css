@@ -63,6 +63,15 @@ button:hover:not(:disabled) { border-color: var(--accent); }
 button.primario { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
 button.primario:hover:not(:disabled) { background: var(--accent-hover); }
 button:disabled { opacity: .45; cursor: default; }
+#sezioneScorciatoia { margin-top: 14px; }
+.nota { margin: 4px 0 8px; line-height: 1.45; }
+.nota.ok { color: var(--ok); }
+.nota.err { color: var(--error); }
+.sub2 { font-weight: 400; color: var(--muted); margin-bottom: 4px; }
+#registra { text-align: center; font-size: 15px; letter-spacing: 1px; cursor: pointer; }
+#registra:focus { background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
+.riga-bottoni { display: flex; gap: 7px; margin-top: 8px; }
+.riga-bottoni button { flex: 1; }
 .stato { color: var(--muted); min-height: 1.2em; margin: 10px 2px 0; }
 .stato.ok { color: var(--ok); }
 .stato.err { color: var(--error); }

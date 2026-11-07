@@ -14,7 +14,7 @@
       <h1>Numeri in lettere</h1>
       <p class="sub">Seleziona nel documento un importo, una data o una quota.</p>
       <p class="rapido">Più rapido: metti il cursore subito dopo il numero e premi
-        <kbd>⌘</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>L</kbd>, oppure il pulsante «In lettere» nella scheda Home.
+        <span id="tastoRapido">la scorciatoia indicata in fondo</span>, oppure il pulsante «In lettere» nella scheda Home.
         Negli importi usa la forma scelta qui sotto («virgola» o «/00»).</p>
     </header>
 
@@ -65,6 +65,18 @@
     </section>
 
     <p id="stato" class="stato"></p>
+
+    <section class="card" id="sezioneScorciatoia">
+      <span class="label">Scorciatoia da tastiera</span>
+      <p class="nota" id="scorciatoiaAttuale">—</p>
+      <label for="registra" class="sub2">Clicca nel campo e premi la combinazione che preferisci</label>
+      <input id="registra" type="text" readonly placeholder="es. ⌘ ⌥ ⇧ K">
+      <div class="riga-bottoni">
+        <button id="salvaScorciatoia" class="primario" disabled>Usa questa combinazione</button>
+        <button id="ripristinaScorciatoia">Ripristina</button>
+      </div>
+      <p class="nota" id="esitoScorciatoia"></p>
+    </section>
   </main>
 
   <script src="numeri.js"></script>

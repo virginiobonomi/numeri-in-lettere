@@ -194,6 +194,106 @@
     }
   } catch (e) { /* fuori da Word: comandi non disponibili */ }
 
+  // ---------- scelta della scorciatoia da tastiera ----------
+
+  var nuovaCombinazione = null;
+  var confermaOccupata = false;   // secondo clic su una combinazione già usata = usala comunque
+  var SIMBOLI = { Command: "⌘", Option: "⌥", Alt: "⌥", Shift: "⇧", Ctrl: "⌃", Control: "⌃" };
+
+  function inSimboli(combo) {
+    return String(combo).split("+").map(function (p) {
+      return "<kbd>" + (SIMBOLI[p] || p) + "</kbd>";
+    }).join("");
+  }
+
+  function esitoScorciatoia(msg, tipo) {
+    var e = $("esitoScorciatoia");
+    e.textContent = msg || "";
+    e.className = "nota" + (tipo ? " " + tipo : "");
+  }
+
+  function scorciatoieDisponibili() {
+    try {
+      return !!(inWord && Office.actions && Office.actions.getShortcuts &&
+        Office.context.requirements.isSetSupported("KeyboardShortcuts", "1.1"));
+    } catch (e) { return false; }
+  }
+
+  function mostraScorciatoiaAttuale() {
+    var att = $("scorciatoiaAttuale");
+    if (!inWord) { att.textContent = "Disponibile solo dentro Word."; return; }
+    if (!scorciatoieDisponibili()) {
+      att.innerHTML = "Questa versione di Word non gestisce le scorciatoie dei componenti aggiuntivi " +
+        "(serve Word per Mac 16.88 o successivo). Usa il pulsante «In lettere».";
+      $("registra").disabled = true; $("ripristinaScorciatoia").disabled = true;
+      return;
+    }
+    Office.actions.getShortcuts().then(function (s) {
+      var c = s && s.InLettere;
+      if (c) {
+        att.innerHTML = "Attuale: " + inSimboli(c);
+        $("tastoRapido").innerHTML = inSimboli(c);
+      } else {
+        att.textContent = "Nessuna scorciatoia attiva (la combinazione è stata assegnata a un'altra funzione). Scegline una qui sotto.";
+        $("tastoRapido").textContent = "la scorciatoia che sceglierai in fondo al pannello";
+      }
+    }).catch(function () {
+      att.textContent = "Impossibile leggere la scorciatoia attuale.";
+    });
+  }
+
+  function registraTasti(ev) {
+    ev.preventDefault();
+    var m = ev.code.match(/^(?:Key([A-Z])|Digit([0-9]))$/);
+    var tasto = m ? (m[1] || m[2]) : (ev.code === "Minus" ? "-" : null);
+    var mod = [];
+    if (ev.metaKey) mod.push("Command");
+    if (ev.ctrlKey) mod.push("Ctrl");
+    if (ev.altKey) mod.push("Option");
+    if (ev.shiftKey) mod.push("Shift");
+    if (!tasto) { $("registra").value = mod.map(function (x) { return SIMBOLI[x]; }).join(" ") + " …"; return; }
+    if (!(ev.metaKey || ev.ctrlKey || ev.altKey)) {
+      nuovaCombinazione = null; $("salvaScorciatoia").disabled = true;
+      esitoScorciatoia("Serve almeno ⌘, ⌥ o ⌃ insieme alla lettera (⇧ da solo non basta).", "err");
+      return;
+    }
+    nuovaCombinazione = mod.concat([tasto]).join("+");
+    confermaOccupata = false;
+    $("registra").value = mod.map(function (x) { return SIMBOLI[x]; }).concat([tasto]).join(" ");
+    $("salvaScorciatoia").disabled = false;
+    esitoScorciatoia("");
+  }
+
+  function salvaScorciatoia() {
+    if (!nuovaCombinazione || !scorciatoieDisponibili()) return;
+    var combo = nuovaCombinazione;
+    var forza = confermaOccupata;
+    var controllo = (!forza && Office.actions.areShortcutsInUse)
+      ? Office.actions.areShortcutsInUse([combo]) : Promise.resolve([]);
+    controllo.then(function (esito) {
+      var occupata = esito && esito[0] && esito[0].inUse;
+      if (occupata) {
+        esitoScorciatoia("Questa combinazione risulta già usata. Provane un'altra, oppure premi di nuovo il pulsante per usarla comunque.", "err");
+        confermaOccupata = true;
+        return;
+      }
+      return Office.actions.replaceShortcuts({ InLettere: combo }).then(function () {
+        esitoScorciatoia("Salvata. Torna nel documento, metti il cursore dopo un numero e prova.", "ok");
+        mostraScorciatoiaAttuale();
+      });
+    }).catch(function (e) {
+      esitoScorciatoia("Word non ha accettato la combinazione" + (e && e.message ? " (" + e.message + ")" : "") + ". Provane un'altra.", "err");
+    });
+  }
+
+  function ripristinaScorciatoia() {
+    if (!scorciatoieDisponibili()) return;
+    Office.actions.replaceShortcuts({ InLettere: null }).then(function () {
+      esitoScorciatoia("Ripristinata la combinazione predefinita.", "ok");
+      mostraScorciatoiaAttuale();
+    }).catch(function () { esitoScorciatoia("Ripristino non riuscito.", "err"); });
+  }
+
   // ---------- avvio ----------
 
   function collega() {
@@ -209,6 +309,9 @@
     $("sostituisci").addEventListener("click", function () { scrivi("sostituisci"); });
     $("aggiungi").addEventListener("click", function () { scrivi("aggiungi"); });
     $("copia").addEventListener("click", copia);
+    $("registra").addEventListener("keydown", registraTasti);
+    $("salvaScorciatoia").addEventListener("click", salvaScorciatoia);
+    $("ripristinaScorciatoia").addEventListener("click", ripristinaScorciatoia);
     aggiorna();
   }
 
@@ -217,7 +320,9 @@
     if (inWord) {
       Office.context.document.addHandlerAsync(Office.EventType.DocumentSelectionChanged, leggiSelezione);
       leggiSelezione();
+      mostraScorciatoiaAttuale();
     } else {
+      mostraScorciatoiaAttuale();
       stato("Aperto fuori da Word: puoi provare le conversioni; l'inserimento nel documento funziona solo in Word.");
     }
     aggiorna();
