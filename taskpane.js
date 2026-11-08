@@ -132,7 +132,7 @@
     } else fallback();
   }
 
-  // ---------- pulsante «In lettere» e scorciatoia da tastiera ----------
+  // ---------- scorciatoia da tastiera ----------
   // Legge il numero (o data, o quota) che precede il cursore e inserisce subito dopo «(in lettere)».
   // Se c'è una selezione, aggiunge le lettere dopo la selezione.
 
@@ -235,7 +235,7 @@
     if (!inWord) { att.textContent = "Disponibile solo dentro Word."; return; }
     if (!scorciatoieDisponibili()) {
       att.innerHTML = "Questa versione di Word non gestisce le scorciatoie dei componenti aggiuntivi " +
-        "(su Mac serve Word 16.88 o successivo; su Windows Word versione 2408 o successiva). Usa il pulsante «In lettere».";
+        "(su Mac serve Word 16.88 o successivo; su Windows Word versione 2408 o successiva). Seleziona il numero e usa il pannello.";
       $("registra").disabled = true; $("ripristinaScorciatoia").disabled = true;
       return;
     }
